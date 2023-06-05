@@ -10,6 +10,7 @@ public abstract class StageObject : MonoBehaviour
     [SerializeField] private bool thrownReflectWall = false;
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private Collider2D col;
+    [SerializeField] private Collider2D thrownCollider;
 
     public abstract StageObjectType StageObjectType { get; }
     public abstract Size Size { get; }
@@ -25,7 +26,7 @@ public abstract class StageObject : MonoBehaviour
 
     private Tween thrownTween;
 
-    public virtual bool CanCatch()
+	public virtual bool CanCatch()
     {
         if (Size == Size.Small) return true;
         if (Size == Size.Midium && StageObjectType == StageObjectType.Object) return true;
@@ -37,13 +38,11 @@ public abstract class StageObject : MonoBehaviour
     {
         IsCatched = true;
         rb.velocity = Vector2.zero;
-        col.enabled = false;
     }
 
     public void EndCatch()
     {
         IsCatched = false;
-        col.enabled = true;
         rb.velocity = Vector2.zero;
     }
 
@@ -53,6 +52,10 @@ public abstract class StageObject : MonoBehaviour
         IsThrowned = true;
         NowThrownedDirection = dir;
         NowThrownedSpeed = speed;
+
+        col.isTrigger = true;
+        thrownCollider.gameObject.SetActive(true);
+
         thrownTween = DOVirtual.DelayedCall(thrownDuration, () => { });
         thrownTween.SetUpdate(UpdateType.Fixed).onUpdate += () =>
         {
@@ -63,6 +66,9 @@ public abstract class StageObject : MonoBehaviour
             IsThrowned = false;
             rb.velocity = Vector2.zero;
             thrownTween = null;
+
+            col.isTrigger = false;
+            thrownCollider.gameObject.SetActive(false);
         };
     }
 
@@ -73,26 +79,22 @@ public abstract class StageObject : MonoBehaviour
         Thrown(NowThrownedDirection, NowThrownedSpeed);
     }
 
-    private void OnCollisionEnter2D(Collision2D col)
+    private void OnTriggerEnter2D(Collider2D col)
     {
         StageObject obj = col.gameObject.GetComponent<StageObject>();
         if (obj != null)
         {
             OnHitStageObjectEventListener?.Invoke(obj);
-            OnHitStageObject(obj);
-
-            if(obj.StageObjectType == StageObjectType.Wall && IsThrowned)
-            {
-                if (thrownReflectWall)
-                {
-                    Reflect();
-                }
-                else
-                {
-                    thrownTween.Complete();
-                }
-            }
+            OnHitStageObject_Virtual(obj);
         }
     }
-    protected virtual void OnHitStageObject(StageObject obj){}
+
+    protected virtual void OnHitStageObject_Virtual(StageObject obj)
+    {
+    }
+
+    public void Kill()
+    {
+        Destroy(gameObject);
+	}
 }

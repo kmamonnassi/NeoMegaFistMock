@@ -48,7 +48,7 @@ public abstract class Character : StageObject
         HP -= pt;
         StunGauge -= pt;
 
-        if(HP <= 0)
+        if (HP <= 0)
         {
             Dead();
             return;
@@ -73,14 +73,12 @@ public abstract class Character : StageObject
     public async void Dead()
     {
         IsDead = true;
-        Debug.Log(IsThrowned);
         await UniTask.WaitUntil(() => !IsThrowned);
         await UniTask.WaitUntil(() => !IsThrowned);
-        Debug.Log(IsThrowned);
         gameObject.SetActive(false);
     }
 
-    protected override void OnHitStageObject(StageObject obj)
+    protected override void OnHitStageObject_Virtual(StageObject obj)
     {
         if (obj.IsThrowned && CharacterType == CharacterType.Enemy)
         {

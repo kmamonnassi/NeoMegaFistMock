@@ -89,13 +89,15 @@ public class PlayerArm : MonoBehaviour
             //Rayの長さは手の大きさ÷2
             float maxDistance = transform.localScale.x / 2;
 
-            RaycastHit2D hit = Physics2D.Raycast(pos, (transform.position - pos).normalized, maxDistance);
-
+            RaycastHit2D hit = Physics2D.Raycast(pos, (transform.position - pos).normalized, maxDistance, LayerMask.GetMask("StageObject"));
             //StageObjectと衝突した時だけその名前をログに出す
             StageObject obj = hit.collider?.GetComponent<StageObject>();
             if (obj != null)
             {
-                objs.Add(obj);
+                if(obj is not Player)
+                {
+                    objs.Add(obj);
+                }
             }
         }
         if(objs.Count > 0)
