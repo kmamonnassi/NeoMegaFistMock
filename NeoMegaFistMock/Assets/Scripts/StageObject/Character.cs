@@ -19,29 +19,42 @@ public abstract class Character : StageObject
     public event Action<int> OnChangeStunGauge;
     public event Action<int, int> OnDamage;
     public event Action<int, int> OnHeal;
+    public event Action OnStun;
+    public event Action OnStunReleased;
 
     public override StageObjectType StageObjectType => StageObjectType.Character;
     public abstract CharacterType CharacterType { get; }
 
-    private void Start()
+    protected virtual void Start()
     {
         HP = maxHp;
         StunGauge = maxStunGauge;
     }
 
+    protected virtual void Update()
+    {
+    
+    }
+
     public async void Stun()
     {
         if (IsStun) return;
+
         IsStun = true;
+        OnStun?.Invoke();
+        Rb.velocity = Vector2.zero;
+
         await UniTask.Delay(TimeSpan.FromSeconds(stunDuration));
+
         IsStun = false;
         StunGauge = maxStunGauge;
         OnChangeStunGauge?.Invoke(StunGauge);
+        OnStunReleased?.Invoke();
     }
 
     public override bool CanCatch()
     {
-        if (Size == Size.Small) return true;
+        if (Size == Size.Small && IsStun) return true;
         if (Size == Size.Midium && IsStun) return true;
         if (Size == Size.Big && IsStun) return true;
 
@@ -56,6 +69,8 @@ public abstract class Character : StageObject
         OnChangeHP?.Invoke(HP);
         StunGauge -= pt;
         OnChangeStunGauge?.Invoke(StunGauge);
+
+        if (this is Player) Debug.Log("DMG" + pt + "/HP" + HP + "/MAX_HP" + MaxHP);
 
         if (HP <= 0)
         {

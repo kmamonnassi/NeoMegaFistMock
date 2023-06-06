@@ -509,7 +509,7 @@ MonoBehaviour:
   col: {fileID: 2319095164159536857}
   attackCollider: {fileID: 0}
   maxHp: 8
-  maxStunGauge: 3
+  maxStunGauge: 9999
   stunDuration: 4
   leftArm: {fileID: 1150481704291643487}
   rightArm: {fileID: 7123272803666095559}

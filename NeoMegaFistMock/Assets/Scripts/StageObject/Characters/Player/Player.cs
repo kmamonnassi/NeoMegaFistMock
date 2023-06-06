@@ -3,10 +3,11 @@ using UnityEngine;
 
 public class Player : Character
 {
+    public override StageObjectID ID => StageObjectID.Player;
     public override CharacterType CharacterType => CharacterType.Player;
     public override Size Size => Size.Midium;
 
-    [SerializeField] private PlayerArm leftArm;
+	[SerializeField] private PlayerArm leftArm;
     [SerializeField] private PlayerArm rightArm;
     [SerializeField] private Animator animator;
     [SerializeField] private CatchCollider catchCol;
@@ -18,13 +19,19 @@ public class Player : Character
     public event Action OnPunching;
     public event Action OnEndPunch;
 
-    private void Start()
+    public static Player Instance;
+
+    protected override void Start()
     {
+        base.Start();
         catchCol.OnHit += rightArm.Catch;
     }
 
-    private void Update()
+    protected override void Update()
     {
+        base.Update();
+        Instance = this;
+
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector3 toDirection = new Vector3(mousePos.x, mousePos.y) - transform.position;
         transform.rotation = Quaternion.FromToRotation(Vector3.up, toDirection);
