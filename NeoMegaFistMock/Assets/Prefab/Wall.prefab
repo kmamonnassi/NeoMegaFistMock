@@ -130,9 +130,11 @@ MonoBehaviour:
   thrownSpeedMultiply: 1
   thrownDuration: 5
   thrownDamage: 5
+  thrownPenetration: 1
   thrownReflectWall: 0
-  rb: {fileID: 0}
-  col: {fileID: 6229860288161457855}
+  rb: {fileID: 7645835963076226582}
+  col: {fileID: 4433571809098437621}
+  thrownCollider: {fileID: 0}
 --- !u!114 &6229860288161457855
 MonoBehaviour:
   m_ObjectHideFlags: 0

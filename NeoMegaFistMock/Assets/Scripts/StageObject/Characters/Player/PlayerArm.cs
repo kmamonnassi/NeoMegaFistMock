@@ -20,48 +20,48 @@ public class PlayerArm : MonoBehaviour
 
     private void Update()
     {
-        if(CatchingObject != null)
+        if (CatchingObject != null)
         {
             CatchingObject.transform.position = transform.position;
         }
     }
 
-    public void Shot(Vector2 dir, float power, float duration)
-    {
-        if (IsShotArm) return;
-        Vector2 targetPos = (Vector2)transform.position + dir * power;
+    //public void Shot(Vector2 dir, float power, float duration)
+    //{
+    //if (IsShotArm) return;
+    //Vector2 targetPos = (Vector2)transform.position + dir * power;
 
-        IsShotArm = true;
-        OnStartShot?.Invoke(targetPos);
-        bool isHitHand = false;
-        Sequence seq = DOTween.Sequence();
-        seq.Append(DOVirtual.Float(0, 1, duration, x =>
-        {
-            Vector2 pos = Vector2.Lerp(CalcPosition(), targetPos, x);
-            transform.position = pos;
+    //IsShotArm = true;
+    //OnStartShot?.Invoke(targetPos);
+    //bool isHitHand = false;
+    //Sequence seq = DOTween.Sequence();
+    //seq.Append(DOVirtual.Float(0, 1, duration, x =>
+    //{
+    //    Vector2 pos = Vector2.Lerp(CalcPosition(), targetPos, x);
+    //    transform.position = pos;
 
-            if(!isHitHand)
-            if(CheckHit() != null)
-            {
-                isHitHand = true;
-            }
-        }));
-        seq.Append(DOVirtual.Float(0, 1, duration, x =>
-        {
-            Vector2 pos = Vector2.Lerp(targetPos, CalcPosition(), x);
-            transform.position = pos;
-        }));
-        seq.onComplete += () =>
-        {
-            IsShotArm = false;
-            OnStartShot?.Invoke(targetPos);
-        };
-        seq.Play();
-    }
+    //    if(!isHitHand)
+    //    if(CheckHit() != null)
+    //    {
+    //        isHitHand = true;
+    //    }
+    //}));
+    //seq.Append(DOVirtual.Float(0, 1, duration, x =>
+    //{
+    //    Vector2 pos = Vector2.Lerp(targetPos, CalcPosition(), x);
+    //    transform.position = pos;
+    //}));
+    //seq.onComplete += () =>
+    //{
+    //    IsShotArm = false;
+    //    OnStartShot?.Invoke(targetPos);
+    //};
+    //seq.Play();
+    //}
 
     public void Catch(StageObject obj)
     {
-        if (obj.IsCatched) return;
+        if (obj.IsCatched || CatchingObject != null) return;
 
         obj.Catch();
         CatchingObject = obj;
@@ -73,54 +73,54 @@ public class PlayerArm : MonoBehaviour
         CatchingObject = null;
     }
 
-    private List<StageObject> CheckHit()
-    {
-        int count = 7;
-        float angleDiff = 360f / (float)count;
-        List<StageObject> objs = new List<StageObject>();
-        for (int i = 0; i < count; i++)
-        {
-            Vector3 pos = transform.position;
+    //private List<StageObject> CheckHit()
+    //{
+    //    int count = 7;
+    //    float angleDiff = 360f / (float)count;
+    //    List<StageObject> objs = new List<StageObject>();
+    //    for (int i = 0; i < count; i++)
+    //    {
+    //        Vector3 pos = transform.position;
 
-            float angle = (90 - angleDiff * i) * Mathf.Deg2Rad;
-            pos.x += Mathf.Cos(angle) * armSize;
-            pos.y += Mathf.Sin(angle) * armSize;
+    //        float angle = (90 - angleDiff * i) * Mathf.Deg2Rad;
+    //        pos.x += Mathf.Cos(angle) * armSize;
+    //        pos.y += Mathf.Sin(angle) * armSize;
 
-            //Rayの長さは手の大きさ÷2
-            float maxDistance = transform.localScale.x / 2;
+    //        //Rayの長さは手の大きさ÷2
+    //        float maxDistance = transform.localScale.x / 2;
 
-            RaycastHit2D hit = Physics2D.Raycast(pos, (transform.position - pos).normalized, maxDistance, LayerMask.GetMask("StageObject"));
-            //StageObjectと衝突した時だけその名前をログに出す
-            StageObject obj = hit.collider?.GetComponent<StageObject>();
-            if (obj != null)
-            {
-                if(obj is not Player)
-                {
-                    objs.Add(obj);
-                }
-            }
-        }
-        if(objs.Count > 0)
-        {
-            OnHitHand?.Invoke(objs);
-            return objs;
-        }
-        return null;
-    }
+    //        RaycastHit2D hit = Physics2D.Raycast(pos, (transform.position - pos).normalized, maxDistance, LayerMask.GetMask("StageObject"));
+    //        //StageObjectと衝突した時だけその名前をログに出す
+    //        StageObject obj = hit.collider?.GetComponent<StageObject>();
+    //        if (obj != null)
+    //        {
+    //            if(obj is not Player)
+    //            {
+    //                objs.Add(obj);
+    //            }
+    //        }
+    //    }
+    //    if(objs.Count > 0)
+    //    {
+    //        OnHitHand?.Invoke(objs);
+    //        return objs;
+    //    }
+    //    return null;
+    //}
 
-    private Vector2 CalcPosition()
-    {
-        Vector2 pos = master.transform.position;
+    //private Vector2 CalcPosition()
+    //{
+    //    Vector2 pos = master.transform.position;
 
-        float angle = (armAngle + 90 + master.transform.eulerAngles.z) * Mathf.Deg2Rad;
-        pos.x += armOffset * Mathf.Cos(angle);
-        pos.y += armOffset * Mathf.Sin(angle);
+    //    float angle = (armAngle + 90 + master.transform.eulerAngles.z) * Mathf.Deg2Rad;
+    //    pos.x += armOffset * Mathf.Cos(angle);
+    //    pos.y += armOffset * Mathf.Sin(angle);
 
-        return pos;
-    }
+    //    return pos;
+    //}
 
-    public void SetPosition()
-    {
-        transform.position = CalcPosition();
-    }
+    //public void SetPosition()
+    //{
+    //    transform.position = CalcPosition();
+    //}
 }

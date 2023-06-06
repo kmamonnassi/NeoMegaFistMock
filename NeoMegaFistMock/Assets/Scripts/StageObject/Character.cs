@@ -7,9 +7,6 @@ public abstract class Character : StageObject
     [SerializeField] private int maxHp = 8;
     [SerializeField] private int maxStunGauge = 3;
     [SerializeField] private int stunDuration = 4;
-
-    public override StageObjectType StageObjectType => StageObjectType.Character;
-    public abstract CharacterType CharacterType { get; }
     
     public int MaxHP => maxHp;
     public int HP { get; private set; }
@@ -17,6 +14,14 @@ public abstract class Character : StageObject
     public int StunGauge { get; private set; }
     public bool IsStun { get; private set; } = false;
     public bool IsDead { get; private set; }
+
+    public event Action<int> OnChangeHP;
+    public event Action<int> OnChangeStunGauge;
+    public event Action<int, int> OnDamage;
+    public event Action<int, int> OnHeal;
+
+    public override StageObjectType StageObjectType => StageObjectType.Character;
+    public abstract CharacterType CharacterType { get; }
 
     private void Start()
     {
@@ -30,6 +35,8 @@ public abstract class Character : StageObject
         IsStun = true;
         await UniTask.Delay(TimeSpan.FromSeconds(stunDuration));
         IsStun = false;
+        StunGauge = maxStunGauge;
+        OnChangeStunGauge?.Invoke(StunGauge);
     }
 
     public override bool CanCatch()
@@ -46,7 +53,9 @@ public abstract class Character : StageObject
         if (IsDead) return;
 
         HP -= pt;
+        OnChangeHP?.Invoke(HP);
         StunGauge -= pt;
+        OnChangeStunGauge?.Invoke(StunGauge);
 
         if (HP <= 0)
         {
@@ -64,7 +73,8 @@ public abstract class Character : StageObject
         if (IsDead) return;
 
         HP += pt;
-        if(HP > maxHp)
+        OnChangeHP?.Invoke(HP);
+        if (HP > maxHp)
         {
             HP = maxHp;
         }
@@ -74,26 +84,14 @@ public abstract class Character : StageObject
     {
         IsDead = true;
         await UniTask.WaitUntil(() => !IsThrowned);
-        await UniTask.WaitUntil(() => !IsThrowned);
-        gameObject.SetActive(false);
+        Kill();
     }
 
     protected override void OnHitStageObject_Virtual(StageObject obj)
     {
-        if (obj.IsThrowned && CharacterType == CharacterType.Enemy)
-        {
-            Damage(obj.ThrownDamage);
-        }
         if (IsThrowned)
         {
-            if(obj.StageObjectType == StageObjectType.Wall)
-            {
-                Damage(5);
-            }
-            else
-            {
-                Damage(1);
-            }
+            Damage(5);
         }
     }
 }

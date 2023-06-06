@@ -6,23 +6,22 @@ public abstract class StageObject : MonoBehaviour
 {
     [SerializeField] private float thrownSpeedMultiply = 1;
     [SerializeField] private float thrownDuration = 5;
-    [SerializeField] private int thrownDamage = 5;
-    [SerializeField] private bool thrownReflectWall = false;
+    [SerializeField] private int thrownPenetration = 1;
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private Collider2D col;
-    [SerializeField] private Collider2D thrownCollider;
+    [SerializeField] private AttackCollider attackCollider;
 
     public abstract StageObjectType StageObjectType { get; }
     public abstract Size Size { get; }
 
     public Action<StageObject> OnHitStageObjectEventListener;
 
-    public int ThrownDamage => thrownDamage;
-    public bool ThrownReflectWall => thrownReflectWall;
+    public int ThrownPenetration => thrownPenetration;
     public bool IsCatched { get; private set; } = false;
     public bool IsThrowned { get; private set; } = false;
     public Vector2 NowThrownedDirection { get; private set; }
     public float NowThrownedSpeed { get; private set; }
+    public float NowThrownedPenetration { get; private set; }
 
     private Tween thrownTween;
 
@@ -52,31 +51,25 @@ public abstract class StageObject : MonoBehaviour
         IsThrowned = true;
         NowThrownedDirection = dir;
         NowThrownedSpeed = speed;
+        NowThrownedPenetration = thrownPenetration;
 
         col.isTrigger = true;
-        thrownCollider.gameObject.SetActive(true);
+        attackCollider.enabled = true;
 
         thrownTween = DOVirtual.DelayedCall(thrownDuration, () => { });
-        thrownTween.SetUpdate(UpdateType.Fixed).onUpdate += () =>
-        {
-            rb.velocity = NowThrownedDirection * NowThrownedSpeed * thrownSpeedMultiply * Time.deltaTime;
-        };
-        thrownTween.onComplete += () =>
-        {
-            IsThrowned = false;
-            rb.velocity = Vector2.zero;
-            thrownTween = null;
-
-            col.isTrigger = false;
-            thrownCollider.gameObject.SetActive(false);
-        };
+        rb.AddForce(NowThrownedDirection * NowThrownedSpeed * thrownSpeedMultiply);
+        thrownTween.onComplete += EndThrown;
     }
 
-    public void Reflect()
+    public void EndThrown()
     {
+        IsThrowned = false;
+        rb.velocity = Vector2.zero;
         thrownTween.Kill();
-        NowThrownedDirection = Quaternion.Euler(0, 0, -90) * NowThrownedDirection;
-        Thrown(NowThrownedDirection, NowThrownedSpeed);
+        thrownTween = null;
+
+        col.isTrigger = false;
+        attackCollider.enabled = false;
     }
 
     private void OnTriggerEnter2D(Collider2D col)
@@ -84,8 +77,31 @@ public abstract class StageObject : MonoBehaviour
         StageObject obj = col.gameObject.GetComponent<StageObject>();
         if (obj != null)
         {
-            OnHitStageObjectEventListener?.Invoke(obj);
-            OnHitStageObject_Virtual(obj);
+            OnHitStageObject(obj);
+        }
+    }
+
+    private void OnCollisionEnter2D(Collision2D col)
+    {
+        StageObject obj = col.gameObject.GetComponent<StageObject>();
+        if (obj != null)
+        {
+            OnHitStageObject(obj);
+        }
+    }
+
+    private void OnHitStageObject(StageObject obj)
+    {
+        OnHitStageObjectEventListener?.Invoke(obj);
+        OnHitStageObject_Virtual(obj);
+
+        if (IsThrowned && obj is not Player)
+        {
+            NowThrownedPenetration--;
+            if (NowThrownedPenetration <= 0)
+            {
+                EndThrown();
+            }
         }
     }
 
