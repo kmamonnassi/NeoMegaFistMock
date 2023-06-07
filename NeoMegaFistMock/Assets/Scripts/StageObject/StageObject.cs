@@ -8,8 +8,10 @@ public abstract class StageObject : MonoBehaviour
     [SerializeField] private float thrownSpeedMultiply = 1;
     [SerializeField] private float thrownDuration = 5;
     [SerializeField] private int thrownPenetration = 1;
+    [SerializeField] private bool isHitThrownObject = true;
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private Collider2D col;
+    [SerializeField] private AttackCollider thrownCollider;
     [SerializeField] private AttackCollider attackCollider;
 
     public Rigidbody2D Rb => rb;
@@ -21,9 +23,12 @@ public abstract class StageObject : MonoBehaviour
     public Action<StageObject> OnHitStageObjectEventListener;
     public Action OnCatched;
     public Action OnReleased;
+    public Action OnThrown;
+    public Action OnEndThrown;
     public Action OnKill;
 
     public int ThrownPenetration => thrownPenetration;
+    public bool IsHitThrownObject => isHitThrownObject;
     public bool IsCatched { get; private set; } = false;
     public bool IsThrowned { get; private set; } = false;
     public Vector2 NowThrownedDirection { get; private set; }
@@ -32,7 +37,11 @@ public abstract class StageObject : MonoBehaviour
 
     private Tween thrownTween;
 
-	public virtual bool CanCatch()
+    protected virtual void Start() { }
+    protected virtual void Update() { }
+    protected virtual void FixedUpdate() { }
+
+    public virtual bool CanCatch()
     {
         if (Size == Size.Small) return true;
         if (Size == Size.Midium && StageObjectType == StageObjectType.Object) return true;
@@ -45,6 +54,7 @@ public abstract class StageObject : MonoBehaviour
         IsCatched = true;
         rb.velocity = Vector2.zero;
         OnCatched?.Invoke();
+        col.isTrigger = true;
     }
 
     public void EndCatch()
@@ -52,6 +62,7 @@ public abstract class StageObject : MonoBehaviour
         IsCatched = false;
         rb.velocity = Vector2.zero;
         OnReleased?.Invoke();
+        col.isTrigger = false;
     }
 
     public void Thrown(Vector3 dir, float speed)
@@ -63,11 +74,13 @@ public abstract class StageObject : MonoBehaviour
         NowThrownedPenetration = thrownPenetration;
 
         col.isTrigger = true;
-        attackCollider.enabled = true;
+        if (thrownCollider != null) thrownCollider.enabled = true;
+        if (attackCollider != null) attackCollider.enabled = false;
 
         thrownTween = DOVirtual.DelayedCall(thrownDuration, () => { });
         rb.AddForce(NowThrownedDirection * NowThrownedSpeed * thrownSpeedMultiply);
         thrownTween.onComplete += EndThrown;
+        OnThrown?.Invoke();
     }
 
     public void EndThrown()
@@ -78,7 +91,9 @@ public abstract class StageObject : MonoBehaviour
         thrownTween = null;
 
         col.isTrigger = false;
-        attackCollider.enabled = false;
+        if (thrownCollider != null) thrownCollider.enabled = false;
+        if (attackCollider != null) attackCollider.enabled = true;
+        OnEndThrown?.Invoke();
     }
 
     private void OnTriggerEnter2D(Collider2D col)
@@ -104,7 +119,7 @@ public abstract class StageObject : MonoBehaviour
         OnHitStageObjectEventListener?.Invoke(obj);
         OnHitStageObject_Virtual(obj);
 
-        if (IsThrowned && obj is not Player)
+        if (IsThrowned && obj.isHitThrownObject)
         {
             NowThrownedPenetration--;
             if (NowThrownedPenetration <= 0)

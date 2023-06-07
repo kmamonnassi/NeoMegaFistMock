@@ -6,6 +6,7 @@ public class FollowPlayer : MonoBehaviour
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private AttackCollider attackCol;
     [SerializeField] private float moveSpeed = 1;
+    [SerializeField] private float followDistance = 0;
 
     private bool isStun;
 
@@ -28,6 +29,7 @@ public class FollowPlayer : MonoBehaviour
 	private void FixedUpdate()
     {
         if (target.IsCatched || target.IsThrowned || isStun || Player.Instance == null) return;
+        if (Vector2.Distance(Player.Instance.transform.position, transform.position) <= followDistance) return;
         Vector3 dir = (Player.Instance.transform.position - transform.position).normalized;
         rb.velocity = dir * moveSpeed * Time.deltaTime;
     }

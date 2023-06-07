@@ -7,7 +7,7 @@ public abstract class Character : StageObject
     [SerializeField] private int maxHp = 8;
     [SerializeField] private int maxStunGauge = 3;
     [SerializeField] private int stunDuration = 4;
-    
+
     public int MaxHP => maxHp;
     public int HP { get; private set; }
     public int MaxStunGauge => maxStunGauge;
@@ -25,13 +25,13 @@ public abstract class Character : StageObject
     public override StageObjectType StageObjectType => StageObjectType.Character;
     public abstract CharacterType CharacterType { get; }
 
-    protected virtual void Start()
+    protected override void Start()
     {
         HP = maxHp;
         StunGauge = maxStunGauge;
     }
 
-    protected virtual void Update()
+    protected override void Update()
     {
     
     }
@@ -95,18 +95,17 @@ public abstract class Character : StageObject
         }
     }
 
-    public async void Dead()
+    public void Dead()
     {
         IsDead = true;
-        await UniTask.WaitUntil(() => !IsThrowned);
         Kill();
     }
 
     protected override void OnHitStageObject_Virtual(StageObject obj)
     {
-        if (IsThrowned)
+        if (IsThrowned && obj.IsHitThrownObject)
         {
-            Damage(5);
+            Damage(1);
         }
     }
 }

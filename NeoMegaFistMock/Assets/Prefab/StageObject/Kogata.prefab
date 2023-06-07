@@ -139,7 +139,7 @@ MonoBehaviour:
   characterType: 0
   damage: 3
   penetration: 1
-  knockBackPower: 1
+  knockBackPower: 5
 --- !u!114 &4561040658862384062
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -157,8 +157,9 @@ MonoBehaviour:
   thrownPenetration: 1
   rb: {fileID: 1967338586587266096}
   col: {fileID: 3992738700464049436}
-  attackCollider: {fileID: 7335252848073972782}
-  maxHp: 3
+  thrownCollider: {fileID: 7335252848073972782}
+  attackCollider: {fileID: 3636245142150949680}
+  maxHp: 2
   maxStunGauge: 1
   stunDuration: 6
 --- !u!58 &3992738700464049436
@@ -209,7 +210,7 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
-  m_LinearDrag: 0
+  m_LinearDrag: 1
   m_AngularDrag: 0.05
   m_GravityScale: 0
   m_Material: {fileID: 0}
@@ -239,6 +240,7 @@ MonoBehaviour:
   rb: {fileID: 1967338586587266096}
   attackCol: {fileID: 3636245142150949680}
   moveSpeed: 200
+  followDistance: 0
 --- !u!114 &3636245142150949680
 MonoBehaviour:
   m_ObjectHideFlags: 0

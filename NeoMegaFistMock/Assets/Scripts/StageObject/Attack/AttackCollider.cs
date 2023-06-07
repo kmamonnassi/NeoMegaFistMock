@@ -37,7 +37,7 @@ public class AttackCollider : MonoBehaviour
             if(target.CharacterType != characterType || characterType == CharacterType.Other)
             {
                 target.Damage(damage);
-                target.KnockBack(((Vector2)(transform.position - target.transform.position)).normalized * knockBackPower);
+                target.KnockBack(((Vector2)(target.transform.position - transform.position)).normalized * knockBackPower);
 
                 nowPenetration--;
                 if (nowPenetration == 0)
